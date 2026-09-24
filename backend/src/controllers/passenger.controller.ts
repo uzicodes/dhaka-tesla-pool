@@ -1,58 +1,47 @@
 import { Request, Response } from 'express';
-import { prisma } from '../lib/prisma';
-import { calculateFare } from '../services/fare.service';
+import { PrismaClient } from '@prisma/client';
 
-export const createRequest = async (req: Request, res: Response): Promise<void> => {
+const prisma = new PrismaClient();
+
+export const createRequest = async (req: Request, res: Response): Promise<any> => {
   try {
     const { passengerId, pickupLocation, dropoffLocation, seatsRequested } = req.body;
-    
-    const fare = calculateFare(pickupLocation, dropoffLocation, false);
 
-    const request = await prisma.rideRequest.create({
+    // 1. Validate Input
+    if (!passengerId || !pickupLocation || !dropoffLocation || !seatsRequested) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (seatsRequested < 1 || seatsRequested > 3) {
+      return res.status(400).json({ error: 'Seats must be between 1 and 3' });
+    }
+
+    // 2. Fare Calculation Model (PRD Section 5)
+    // Storing as integer Poysha to prevent floating point errors
+    const baseFarePoysha = 5000; // 50 BDT
+    const distanceChargePoysha = 6000; // 60 BDT
+    // Apply a 25% discount for agreeing to pool
+    const poolDiscountPoysha = Math.round((baseFarePoysha + distanceChargePoysha) * 0.25); 
+    const finalFarePoysha = baseFarePoysha + distanceChargePoysha - poolDiscountPoysha;
+
+    // 3. Create the Database Record
+    const rideRequest = await prisma.rideRequest.create({
       data: {
         passengerId,
         pickupLocation,
         dropoffLocation,
         seatsRequested,
-        baseFarePoysha: fare.baseFarePoysha,
-        distanceChargePoysha: fare.distanceChargePoysha,
-        poolDiscountPoysha: fare.poolDiscountPoysha,
-        finalFarePoysha: fare.finalFarePoysha,
+        status: 'REQUESTED',
+        baseFarePoysha,
+        distanceChargePoysha,
+        poolDiscountPoysha,
+        finalFarePoysha
       }
     });
 
-    res.status(201).json(request);
+    return res.status(201).json(rideRequest);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create request' });
-  }
-};
-
-export const cancelRequest = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    
-    const rideReq = await prisma.rideRequest.findUnique({
-      where: { id },
-      include: { pool: true }
-    });
-
-    if (!rideReq) {
-      res.status(404).json({ error: 'Request not found' });
-      return;
-    }
-
-    if (rideReq.pool && (rideReq.pool.status === 'STARTED' || rideReq.pool.status === 'COMPLETED')) {
-      res.status(400).json({ error: 'Cannot cancel a trip that has already started' });
-      return;
-    }
-
-    const updated = await prisma.rideRequest.update({
-      where: { id },
-      data: { status: 'CANCELLED' }
-    });
-
-    res.status(200).json(updated);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to cancel request' });
+    console.error('Error creating ride request:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
