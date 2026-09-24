@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Next.js & Build outputs
+.next/
+dist/
+build/
+out/
+
+# Environment files (never commit secrets)
+.env
+.env*.local
+.env.*
+!.env.example
+
+# Database / Prisma
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# IDE & AI Assistant metadata
+.agents/
+.claude/
+.cursor/
+.devin/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
