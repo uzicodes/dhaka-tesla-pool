@@ -12,14 +12,6 @@ enum Role {
   DRIVER
 }
 
-enum PoolStatus {
-  MATCHING
-  DRIVER_ARRIVED
-  STARTED
-  COMPLETED
-  CANCELLED
-}
-
 enum RequestStatus {
   REQUESTED
   MATCHED
@@ -29,70 +21,60 @@ enum RequestStatus {
   CANCELLED
 }
 
+enum PoolStatus {
+  MATCHING
+  DRIVER_ARRIVED
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  role         Role          @default(PASSENGER)
-  isOnline     Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  vehicles     Vehicle[]
-  ridePools    RidePool[]    @relation("DriverPools")
-  rideRequests RideRequest[]
-
-  @@map("users")
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  role          Role
+  vehicles      Vehicle[]
+  rideRequests  RideRequest[]
+  ridePools     RidePool[]
+  createdAt     DateTime      @default(now())
 }
 
 model Vehicle {
   id        String     @id @default(uuid())
-  driverId  String     @unique
-  name      String     // "Bullet"
-  capacity  Int        @default(3)
-  createdAt DateTime   @default(now())
-
-  driver    User       @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driverId  String
+  name      String
+  capacity  Int
+  driver    User       @relation(fields: [driverId], references: [id])
   ridePools RidePool[]
-
-  @@map("vehicles")
+  createdAt DateTime   @default(now())
 }
 
 model RidePool {
-  id          String        @id @default(uuid())
-  driverId    String
-  vehicleId   String
-  status      PoolStatus    @default(MATCHING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  driver      User          @relation("DriverPools", fields: [driverId], references: [id])
-  vehicle     Vehicle       @relation(fields: [vehicleId], references: [id])
-  requests    RideRequest[]
-
-  @@map("ride_pools")
+  id        String        @id @default(uuid())
+  driverId  String
+  vehicleId String
+  status    PoolStatus    @default(MATCHING)
+  driver    User          @relation(fields: [driverId], references: [id])
+  vehicle   Vehicle       @relation(fields: [vehicleId], references: [id])
+  requests  RideRequest[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
 
 model RideRequest {
   id                   String        @id @default(uuid())
   passengerId          String
   poolId               String?
-  pickupLocation       String        // e.g., "Banani"
-  dropoffLocation      String        // e.g., "Mohakhali"
-  seatsRequested       Int           @default(1)
+  pickupLocation       String
+  dropoffLocation      String
+  seatsRequested       Int
   status               RequestStatus @default(REQUESTED)
-  
-  // Stored in poysha (integer) to avoid float rounding errors
-  baseFarePoysha       Int           @default(0)
-  distanceChargePoysha Int           @default(0)
-  poolDiscountPoysha   Int           @default(0)
-  finalFarePoysha      Int           @default(0)
-  
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-
+  baseFarePoysha       Int
+  distanceChargePoysha Int
+  poolDiscountPoysha   Int
+  finalFarePoysha      Int
   passenger            User          @relation(fields: [passengerId], references: [id])
-  pool                 RidePool?     @relation(fields: [poolId], references: [id], onDelete: SetNull)
-
-  @@map("ride_requests")
+  pool                 RidePool?     @relation(fields: [poolId], references: [id])
+  createdAt            DateTime      @default(now())
 }

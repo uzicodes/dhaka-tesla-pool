@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": ["jest","node"]
   },
   "include": ["src/**/*", "prisma/**/*"]
 }
