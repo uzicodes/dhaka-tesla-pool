@@ -45,3 +45,59 @@ export const createRequest = async (req: Request, res: Response): Promise<any> =
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const createRideRequest = createRequest;
+
+export const getActivePassengerRequest = async (req: Request, res: Response): Promise<any> => {
+  const { passengerId } = req.params;
+
+  try {
+    const activeRequest = await prisma.rideRequest.findFirst({
+      where: {
+        passengerId,
+        status: { in: ['REQUESTED', 'MATCHED', 'DRIVER_ARRIVED', 'STARTED'] },
+      },
+      include: {
+        pool: {
+          include: {
+            driver: true,
+            vehicle: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json(activeRequest || null);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch active passenger request' });
+  }
+};
+
+export const cancelPassengerRequest = async (req: Request, res: Response): Promise<any> => {
+  const { requestId } = req.params;
+
+  try {
+    const request = await prisma.rideRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    // Cancellation rule: Allowed only before the ride has physically started
+    if (request.status === 'STARTED' || request.status === 'COMPLETED') {
+      return res.status(400).json({ error: 'Cannot cancel an ongoing or completed trip' });
+    }
+
+    const cancelled = await prisma.rideRequest.update({
+      where: { id: requestId },
+      data: { status: 'CANCELLED' },
+    });
+
+    return res.json(cancelled);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to cancel request' });
+  }
+};
