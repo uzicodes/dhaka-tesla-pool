@@ -1,11 +1,23 @@
 import { Router } from 'express';
-import { createRequest } from '../controllers/passenger.controller';
-import { getPendingRequests, acceptRequest, getActivePool, updatePoolStatus } from '../controllers/driver.controller';
+import {
+  createRequest,
+  createRideRequest,
+  getActivePassengerRequest,
+  cancelPassengerRequest,
+} from '../controllers/passenger.controller';
+import {
+  getPendingRequests,
+  acceptRequest,
+  getActivePool,
+  updatePoolStatus,
+} from '../controllers/driver.controller';
 
 const router = Router();
 
 // Passenger Routes
 router.post('/requests', createRequest);
+router.get('/requests/active/:passengerId', getActivePassengerRequest);
+router.patch('/requests/:requestId/cancel', cancelPassengerRequest);
 
 // Driver & Pool Routes
 router.get('/requests/pending', getPendingRequests);
