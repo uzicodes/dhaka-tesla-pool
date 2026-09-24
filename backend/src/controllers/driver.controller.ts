@@ -1,83 +1,71 @@
 import { Request, Response } from 'express';
-import { prisma } from '../lib/prisma';
-import { calculateFare } from '../services/fare.service';
+import { PrismaClient } from '@prisma/client';
 
-export const acceptRide = async (req: Request, res: Response): Promise<void> => {
+const prisma = new PrismaClient();
+
+export const getPendingRequests = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { driverId, requestId } = req.body;
+    const requests = await prisma.rideRequest.findMany({
+      where: { status: 'REQUESTED' },
+      include: { passenger: true }, // So Jashim can see who requested it
+      orderBy: { createdAt: 'asc' }
+    });
+    return res.json(requests);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch requests' });
+  }
+};
 
-    // Run as a database transaction to prevent concurrency overbooking
+export const acceptRequest = async (req: Request, res: Response): Promise<any> => {
+  const { driverId, requestId } = req.body;
+
+  try {
+    // 1. Fetch the driver's vehicle to know the hard capacity limit
+    const vehicle = await prisma.vehicle.findFirst({ where: { driverId } });
+    if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
+
+    // 2. The Concurrency Trap: Use an Interactive Transaction
     const result = await prisma.$transaction(async (tx) => {
-      const vehicle = await tx.vehicle.findFirst({ where: { driverId } });
-      if (!vehicle) throw new Error('Vehicle not found');
+      // Find the request and ensure it's still available
+      const targetRequest = await tx.rideRequest.findUnique({ where: { id: requestId } });
+      if (!targetRequest || targetRequest.status !== 'REQUESTED') {
+        throw new Error('Request is no longer available');
+      }
 
-      const rideReq = await tx.rideRequest.findUnique({ where: { id: requestId } });
-      if (!rideReq) throw new Error('Request not found');
-
-      // Find an active pool or create a new one
+      // Find an active pool for this driver, or create a new one
       let pool = await tx.ridePool.findFirst({
-        where: { driverId, status: { in: ['MATCHING', 'DRIVER_ARRIVED'] } },
-        include: { requests: { where: { status: { not: 'CANCELLED' } } } }
+        where: { driverId, status: { in: ['MATCHING', 'DRIVER_ARRIVED', 'STARTED'] } }
       });
 
       if (!pool) {
         pool = await tx.ridePool.create({
-          data: { driverId, vehicleId: vehicle.id, status: 'MATCHING' },
-          // Adding this makes the return type match the findFirst query above
-          include: { requests: true } 
+          data: { driverId, vehicleId: vehicle.id, status: 'MATCHING' }
         });
       }
 
-      // TypeScript now knows pool is definitely not null and has a requests array
-      const currentSeats = pool.requests.reduce((sum, r) => sum + r.seatsRequested, 0);
+      // Calculate currently occupied seats in this pool
+      const currentRequests = await tx.rideRequest.findMany({
+        where: { poolId: pool.id, status: { notIn: ['CANCELLED'] } }
+      });
+      
+      const occupiedSeats = currentRequests.reduce((sum, req) => sum + req.seatsRequested, 0);
 
-      if (currentSeats + rideReq.seatsRequested > vehicle.capacity) {
-        throw new Error('Vehicle capacity exceeded');
+      // Validate Capacity
+      if (occupiedSeats + targetRequest.seatsRequested > vehicle.capacity) {
+        throw new Error(`Capacity exceeded. Bullet only has ${vehicle.capacity - occupiedSeats} seats left.`);
       }
 
-      // Recalculate fare as pooled
-      const newFare = calculateFare(rideReq.pickupLocation, rideReq.dropoffLocation, true);
-
-      // Update the request to MATCHED and attach it to the pool
-      await tx.rideRequest.update({
+      // Update the request to MATCHED and assign it to the pool
+      const updatedRequest = await tx.rideRequest.update({
         where: { id: requestId },
-        data: {
-          poolId: pool!.id,
-          status: 'MATCHED',
-          ...newFare
-        }
+        data: { status: 'MATCHED', poolId: pool.id }
       });
 
-      return pool;
+      return { pool, updatedRequest };
     });
 
-    res.status(200).json({ poolId: result!.id });
+    return res.json(result);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-export const updatePoolStatus = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    const pool = await prisma.ridePool.update({
-      where: { id },
-      data: { status }
-    });
-
-    // Cascade the status down to all associated passenger requests
-    let requestStatus: any = status;
-    if (status === 'MATCHING') requestStatus = 'MATCHED';
-    
-    await prisma.rideRequest.updateMany({
-      where: { poolId: id },
-      data: { status: requestStatus }
-    });
-
-    res.status(200).json(pool);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update pool status' });
+    return res.status(400).json({ error: error.message });
   }
 };
