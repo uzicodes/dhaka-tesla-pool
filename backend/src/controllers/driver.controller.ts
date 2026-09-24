@@ -69,3 +69,53 @@ export const acceptRequest = async (req: Request, res: Response): Promise<any> =
     return res.status(400).json({ error: error.message });
   }
 };
+
+export const getActivePool = async (req: Request, res: Response): Promise<any> => {
+  const { driverId } = req.params;
+  try {
+    const pool = await prisma.ridePool.findFirst({
+      where: {
+        driverId,
+        status: { in: ['MATCHING', 'DRIVER_ARRIVED', 'STARTED'] }
+      },
+      include: {
+        requests: { include: { passenger: true } }
+      }
+    });
+    return res.json(pool || null);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch active pool' });
+  }
+};
+
+export const updatePoolStatus = async (req: Request, res: Response): Promise<any> => {
+  const { poolId } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = ['DRIVER_ARRIVED', 'STARTED', 'COMPLETED', 'CANCELLED'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status transition' });
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Update the Pool
+      const updatedPool = await tx.ridePool.update({
+        where: { id: poolId },
+        data: { status }
+      });
+
+      // 2. Cascade the status to all active passenger requests in this pool
+      await tx.rideRequest.updateMany({
+        where: { poolId, status: { not: 'CANCELLED' } },
+        data: { status }
+      });
+
+      return updatedPool;
+    });
+
+    return res.json(result);
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to update pool status' });
+  }
+};
