@@ -52,7 +52,7 @@ export const acceptRequest = async (req: Request, res: Response): Promise<any> =
 
       // Validate Capacity
       if (occupiedSeats + targetRequest.seatsRequested > vehicle.capacity) {
-        throw new Error(`Capacity exceeded. Bullet only has ${vehicle.capacity - occupiedSeats} seats left.`);
+        throw new Error('Vehicle capacity exceeded');
       }
 
       // Update the request to MATCHED and assign it to the pool
