@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { calculateFare } from '../services/fare.service';
 
 const prisma = new PrismaClient();
 
@@ -17,12 +18,8 @@ export const createRequest = async (req: Request, res: Response): Promise<any> =
     }
 
     // 2. Fare Calculation Model (PRD Section 5)
-    // Storing as integer Poysha to prevent floating point errors
-    const baseFarePoysha = 5000; // 50 BDT
-    const distanceChargePoysha = 6000; // 60 BDT
-    // Apply a 25% discount for agreeing to pool
-    const poolDiscountPoysha = Math.round((baseFarePoysha + distanceChargePoysha) * 0.25); 
-    const finalFarePoysha = baseFarePoysha + distanceChargePoysha - poolDiscountPoysha;
+    // Non-pooled fare calculation upon request creation
+    const fare = calculateFare(pickupLocation, dropoffLocation, false);
 
     // 3. Create the Database Record
     const rideRequest = await prisma.rideRequest.create({
@@ -32,10 +29,10 @@ export const createRequest = async (req: Request, res: Response): Promise<any> =
         dropoffLocation,
         seatsRequested,
         status: 'REQUESTED',
-        baseFarePoysha,
-        distanceChargePoysha,
-        poolDiscountPoysha,
-        finalFarePoysha
+        baseFarePoysha: fare.baseFarePoysha,
+        distanceChargePoysha: fare.distanceChargePoysha,
+        poolDiscountPoysha: fare.poolDiscountPoysha,
+        finalFarePoysha: fare.finalFarePoysha
       }
     });
 

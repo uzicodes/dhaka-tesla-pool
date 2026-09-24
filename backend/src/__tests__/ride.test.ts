@@ -21,7 +21,15 @@ describe('Dhaka Tesla Pool API', () => {
     passengerId3 = p3!.id;
   });
 
+  beforeEach(async () => {
+    // Reset ride requests and pools so each test has a clean state
+    await prisma.rideRequest.deleteMany();
+    await prisma.ridePool.deleteMany();
+  });
+
   afterAll(async () => {
+    await prisma.rideRequest.deleteMany();
+    await prisma.ridePool.deleteMany();
     await prisma.$disconnect();
   });
 
