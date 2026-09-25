@@ -25,7 +25,11 @@ export async function createRideRequest(data: any) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return res.json();
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error || 'Failed to create ride request');
+  }
+  return json;
 }
 
 export async function fetchPendingRequests() {
