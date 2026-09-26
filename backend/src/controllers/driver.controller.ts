@@ -16,19 +16,19 @@ export const getPendingRequests = async (req: Request, res: Response): Promise<a
   }
 };
 
-export const acceptRequest = async (req: Request, res: Response): Promise<any> => {
+export const acceptCommuter = async (req: Request, res: Response): Promise<any> => {
   const { driverId, requestId } = req.body;
 
   try {
-    // 1. Fetch the driver's vehicle to know the hard capacity limit
-    const vehicle = await prisma.vehicle.findFirst({ where: { driverId } });
-    if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
-
-    // 2. The Concurrency Trap: Use an Interactive Transaction
+    // 1. The Concurrency Trap: Use an Interactive Transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Fetch the driver's vehicle inside the transaction to ensure capacity is accurate
+      const vehicle = await tx.vehicle.findFirst({ where: { driverId } });
+      if (!vehicle) throw new Error('Vehicle not found');
+
       // Find the request and ensure it's still available
-      const targetRequest = await tx.rideRequest.findUnique({ where: { id: requestId } });
-      if (!targetRequest || targetRequest.status !== 'REQUESTED') {
+      const pendingRequest = await tx.rideRequest.findUnique({ where: { id: requestId } });
+      if (!pendingRequest || pendingRequest.status !== 'REQUESTED') {
         throw new Error('Request is no longer available');
       }
 
@@ -48,14 +48,14 @@ export const acceptRequest = async (req: Request, res: Response): Promise<any> =
         where: { poolId: pool.id, status: { notIn: ['CANCELLED'] } }
       });
       
-      const occupiedSeats = currentRequests.reduce((sum, req) => sum + req.seatsRequested, 0);
+      const currentClaimedSeats = currentRequests.reduce((sum, req) => sum + req.seatsRequested, 0);
 
-      // Validate Capacity
-      if (occupiedSeats + targetRequest.seatsRequested > vehicle.capacity) {
+      // Validate Capacity (Hard Limit)
+      if (currentClaimedSeats + pendingRequest.seatsRequested > vehicle.capacity) {
         throw new Error('Vehicle capacity exceeded');
       }
 
-      // Update the request to MATCHED and assign it to the pool
+      // Update State: Change request to MATCHED and assign to pool
       const updatedRequest = await tx.rideRequest.update({
         where: { id: requestId },
         data: { status: 'MATCHED', poolId: pool.id }

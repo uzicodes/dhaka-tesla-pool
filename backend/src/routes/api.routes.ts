@@ -7,7 +7,7 @@ import {
 } from '../controllers/passenger.controller';
 import {
   getPendingRequests,
-  acceptRequest,
+  acceptCommuter,
   getActivePool,
   updatePoolStatus,
 } from '../controllers/driver.controller';
@@ -25,7 +25,7 @@ router.patch('/requests/:requestId/cancel', cancelPassengerRequest);
 
 // Driver & Pool Routes
 router.get('/requests/pending', getPendingRequests);
-router.post('/pools/accept', acceptRequest);
+router.post('/pools/accept', acceptCommuter);
 router.get('/pools/active/:driverId', getActivePool);
 router.patch('/pools/:poolId/status', updatePoolStatus);
 
