@@ -11,8 +11,12 @@ import {
   getActivePool,
   updatePoolStatus,
 } from '../controllers/driver.controller';
+import { login } from '../controllers/auth.controller';
 
 const router = Router();
+
+// Auth Routes
+router.post('/auth/login', login);
 
 // Passenger Routes
 router.post('/requests', createRequest);
