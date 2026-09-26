@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
-  fetchUserByEmail, 
   fetchPendingRequests, 
   acceptRideRequest, 
   fetchActivePool, 
-  updatePoolStatus, 
-  MVP_CAST 
+  updatePoolStatus
 } from '@/lib/api';
 
 const POOL_STATUS_CONFIG: Record<string, { label: string; badge: string; nextAction?: string; nextStatus?: string; btnColor?: string }> = {
@@ -39,6 +38,7 @@ const POOL_STATUS_CONFIG: Record<string, { label: string; badge: string; nextAct
 };
 
 export default function DriverDashboard() {
+  const router = useRouter();
   const [driverId, setDriverId] = useState<string | null>(null);
   const [requests, setRequests] = useState<any[]>([]);
   const [activePool, setActivePool] = useState<any>(null);
@@ -46,14 +46,35 @@ export default function DriverDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const loadData = async () => {
+  // 1. Session initialization
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem('tesla_pool_user');
+    if (!storedUser) {
+      router.push('/login');
+      return;
+    }
+    
     try {
-      const driver = await fetchUserByEmail(MVP_CAST.JASHIM);
-      setDriverId(driver.id);
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.role !== 'DRIVER') {
+        router.push('/login');
+        return;
+      }
+      setDriverId(parsedUser.id);
+    } catch (err) {
+      console.error('Invalid session data');
+      sessionStorage.removeItem('tesla_pool_user');
+      router.push('/login');
+    }
+  }, [router]);
 
+  // 2. Data loading and polling
+  const loadData = async () => {
+    if (!driverId) return;
+    try {
       const [pending, pool] = await Promise.all([
         fetchPendingRequests(),
-        fetchActivePool(driver.id),
+        fetchActivePool(driverId),
       ]);
       setRequests(pending || []);
       setActivePool(pool);
@@ -65,10 +86,11 @@ export default function DriverDashboard() {
   };
 
   useEffect(() => {
+    if (!driverId) return;
     loadData();
     const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [driverId]);
 
   const handleAccept = async (requestId: string) => {
     if (!driverId) return;

@@ -30,7 +30,7 @@ export default function LoginPage() {
       }
 
       const user = await res.json();
-      localStorage.setItem('tesla_pool_user', JSON.stringify(user));
+      sessionStorage.setItem('tesla_pool_user', JSON.stringify(user));
 
       if (user.role === 'DRIVER') {
         router.push('/driver');

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  fetchUserByEmail,
   fetchActiveRequest,
   createRideRequest,
   cancelRideRequest,
-  MVP_CAST,
 } from '@/lib/api';
 
 const LOCATIONS = ['Banani', 'Gulshan 1', 'Mohakhali', 'Dhanmondi', 'Uttara'];
@@ -54,6 +53,7 @@ const STATUS_CONFIG: Record<
 };
 
 export default function PassengerDashboard() {
+  const router = useRouter();
   const [passenger, setPassenger] = useState<any>(null);
   const [activeRequest, setActiveRequest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -66,20 +66,29 @@ export default function PassengerDashboard() {
   const [dropoff, setDropoff] = useState('Mohakhali');
   const [seats, setSeats] = useState(1);
 
-  // Initialize Nusrat profile
+  // Initialize session user
   useEffect(() => {
-    async function initUser() {
-      try {
-        const user = await fetchUserByEmail(MVP_CAST.NUSRAT);
-        setPassenger(user);
-      } catch (err) {
-        console.error('Failed to load passenger profile', err);
-      } finally {
-        setLoading(false);
-      }
+    const storedUser = sessionStorage.getItem('tesla_pool_user');
+    if (!storedUser) {
+      router.push('/login');
+      return;
     }
-    initUser();
-  }, []);
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.role !== 'PASSENGER') {
+        router.push('/login');
+        return;
+      }
+      setPassenger(parsedUser);
+    } catch (err) {
+      console.error('Invalid session data');
+      sessionStorage.removeItem('tesla_pool_user');
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
 
   // Poll active request status every 3 seconds
   useEffect(() => {
