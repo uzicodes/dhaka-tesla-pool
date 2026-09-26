@@ -8,6 +8,7 @@ import {
   fetchActivePool, 
   updatePoolStatus
 } from '@/lib/api';
+import LogoutButton from '@/components/LogoutButton';
 
 const POOL_STATUS_CONFIG: Record<string, { label: string; badge: string; nextAction?: string; nextStatus?: string; btnColor?: string }> = {
   MATCHING: {
@@ -150,9 +151,12 @@ export default function DriverDashboard() {
             Vehicle: <strong className="text-slate-800 font-semibold">Bullet</strong> (Tesla Model 3 • Max 3 Seats)
           </p>
         </div>
-        <div className="text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Online & Ready</span>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex items-center gap-2 hidden sm:flex">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Online & Ready</span>
+          </div>
+          <LogoutButton />
         </div>
       </div>
 

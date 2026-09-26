@@ -7,6 +7,7 @@ import {
   createRideRequest,
   cancelRideRequest,
 } from '@/lib/api';
+import LogoutButton from '@/components/LogoutButton';
 
 const LOCATIONS = ['Banani', 'Gulshan 1', 'Mohakhali', 'Dhanmondi', 'Uttara'];
 
@@ -168,9 +169,12 @@ export default function PassengerDashboard() {
             Logged in as <strong className="text-slate-800 font-semibold">{passenger?.name || 'Nusrat'}</strong> ({passenger?.email})
           </p>
         </div>
-        <div className="text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Live Dispatch Sync (3s)</span>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex items-center gap-2 hidden sm:flex">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Live Dispatch Sync (3s)</span>
+          </div>
+          <LogoutButton />
         </div>
       </div>
 
