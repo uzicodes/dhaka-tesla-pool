@@ -10,11 +10,15 @@ export const MVP_CAST = {
 };
 
 export function formatPoyshaToBDT(poysha: number): string {
-  return `৳${(poysha / 100).toFixed(2)}`;
+  return `৳ ${(poysha / 100).toFixed(2)}`;
 }
 
 export async function fetchUserByEmail(email: string) {
-  const res = await fetch(`${API_URL}/users?email=${email}`);
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
   if (!res.ok) throw new Error('User not found');
   return res.json();
 }
@@ -26,17 +30,13 @@ export async function createRideRequest(data: any) {
     body: JSON.stringify(data),
   });
   const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.error || 'Failed to create ride request');
-  }
+  if (!res.ok) throw new Error(json.error || 'Failed to create ride request');
   return json;
 }
 
 export async function fetchPendingRequests() {
-  const res = await fetch(`${API_URL}/requests/pending`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch pending requests');
-  }
+  const res = await fetch(`${API_URL}/drivers/requests/available`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch available requests');
   return res.json();
 }
 
@@ -52,7 +52,7 @@ export async function acceptRideRequest(driverId: string, requestId: string) {
 }
 
 export async function fetchActivePool(driverId: string) {
-  const res = await fetch(`${API_URL}/pools/active/${driverId}`);
+  const res = await fetch(`${API_URL}/drivers/${driverId}/active-pool`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch active pool');
   return res.json();
 }
@@ -68,11 +68,12 @@ export async function updatePoolStatus(poolId: string, status: string) {
 }
 
 export async function fetchActiveRequest(passengerId: string) {
-  const res = await fetch(`${API_URL}/requests/active/${passengerId}`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error('Failed to fetch active request');
-  return res.json();
+  const res = await fetch(`${API_URL}/passengers/${passengerId}/requests`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch requests');
+  const requests = await res.json();
+  // Return the first active request, or null
+  const active = requests.find((r: any) => !['COMPLETED', 'CANCELLED'].includes(r.status));
+  return active || null;
 }
 
 export async function cancelRideRequest(requestId: string) {
@@ -93,22 +94,12 @@ export const api = {
   fetchActiveRequest,
   cancelRideRequest,
   getPassengerRequests: async (passengerId: string): Promise<RideRequest[]> => {
-    const res = await fetch(`${API_URL}/passengers/${passengerId}/requests`, {
-      cache: 'no-store',
-    });
+    const res = await fetch(`${API_URL}/passengers/${passengerId}/requests`, { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed to fetch requests');
     return res.json();
   },
   cancelRequest: cancelRideRequest,
-  getAvailableRequests: async () => {
-    const res = await fetch(`${API_URL}/requests/pending`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch available requests');
-    return res.json();
-  },
-  getDriverActivePool: async (driverId: string): Promise<ActivePool | null> => {
-    return fetchActivePool(driverId);
-  },
+  getAvailableRequests: fetchPendingRequests,
+  getDriverActivePool: fetchActivePool,
   acceptIntoPool: acceptRideRequest,
 };

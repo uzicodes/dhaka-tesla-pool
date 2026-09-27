@@ -85,3 +85,25 @@ export async function updatePoolStatus(req: Request, res: Response) {
     return res.status(400).json({ error: error.message });
   }
 }
+
+export async function getActivePool(req: Request, res: Response) {
+  try {
+    const { driverId } = req.params;
+    const pool = await prisma.ridePool.findFirst({
+      where: {
+        driverId,
+        status: { in: [PoolStatus.MATCHING, PoolStatus.DRIVER_ARRIVED, PoolStatus.STARTED] }
+      },
+      include: {
+        requests: { 
+          include: { passenger: { select: { name: true, email: true } } },
+          where: { status: { not: RequestStatus.CANCELLED } }
+        },
+        vehicle: true
+      }
+    });
+    return res.json(pool || null);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+}
