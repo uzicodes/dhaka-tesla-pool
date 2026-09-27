@@ -228,7 +228,14 @@ export default function DriverDashboard() {
                   activePool.requests.map((req: any) => (
                     <div key={req.id} className="p-3 flex justify-between items-center text-xs">
                       <div>
-                        <div className="font-semibold text-slate-800">{req.passenger?.name || 'Passenger'}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-800">{req.passenger?.name || 'Passenger'}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                            req.paymentMethod === 'TESLA_PAY' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-slate-200 text-slate-700 border border-slate-300'
+                          }`}>
+                            {req.paymentMethod === 'TESLA_PAY' ? 'TeslaPay' : 'Cash'}
+                          </span>
+                        </div>
                         <div className="text-[11px] text-slate-500">{req.pickupLocation} → {req.dropoffLocation}</div>
                       </div>
                       <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-semibold text-[11px]">

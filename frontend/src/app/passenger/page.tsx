@@ -66,6 +66,7 @@ export default function PassengerDashboard() {
   const [pickup, setPickup] = useState('Banani');
   const [dropoff, setDropoff] = useState('Mohakhali');
   const [seats, setSeats] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState('CASH');
 
   // Initialize session user
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function PassengerDashboard() {
         pickupLocation: pickup,
         dropoffLocation: dropoff,
         seatsRequested: Number(seats),
+        paymentMethod: paymentMethod,
       });
       setActiveRequest(request);
     } catch (err: any) {
@@ -364,6 +366,37 @@ export default function PassengerDashboard() {
                     {num} {num === 1 ? 'Seat' : 'Seats'}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Payment Method
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('CASH')}
+                  className={`py-2 text-xs font-semibold rounded-xl border transition ${
+                    paymentMethod === 'CASH'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  Cash
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('TESLA_PAY')}
+                  className={`py-2 text-xs font-semibold rounded-xl border transition ${
+                    paymentMethod === 'TESLA_PAY'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  TeslaPay Wallet
+                </button>
               </div>
             </div>
 

@@ -7,7 +7,7 @@ export default function Home() {
       <section className="text-center space-y-4 pt-6 pb-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          Pilot Hub: Banani ↔ Mohakhali ↔ Gulshan
+          Tesla Hub: Dhaka City
         </div>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900">
           Shared Tesla Mobility for Dhaka
@@ -26,7 +26,6 @@ export default function Home() {
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
                 Commuter Workspace
               </span>
-              <span className="text-xs font-medium text-slate-400">Default Actor: Nusrat</span>
             </div>
             <h2 className="text-xl font-bold text-slate-900">Passenger Console</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
@@ -61,7 +60,6 @@ export default function Home() {
               <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
                 Fleet Dispatch
               </span>
-              <span className="text-xs font-medium text-slate-400">Driver: Jashim (Bullet)</span>
             </div>
             <h2 className="text-xl font-bold text-slate-900">Driver Console</h2>
             <p className="text-sm text-slate-600 leading-relaxed">

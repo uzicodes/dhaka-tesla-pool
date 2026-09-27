@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export const createRequest = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { passengerId, pickupLocation, dropoffLocation, seatsRequested } = req.body;
+    const { passengerId, pickupLocation, dropoffLocation, seatsRequested, paymentMethod } = req.body;
 
     // 1. Validate Input
     if (!passengerId || !pickupLocation || !dropoffLocation || !seatsRequested) {
@@ -28,6 +28,7 @@ export const createRequest = async (req: Request, res: Response): Promise<any> =
         pickupLocation,
         dropoffLocation,
         seatsRequested,
+        paymentMethod: paymentMethod || 'CASH',
         status: 'REQUESTED',
         baseFarePoysha: fare.baseFarePoysha,
         distanceChargePoysha: fare.distanceChargePoysha,

@@ -29,6 +29,11 @@ enum PoolStatus {
   CANCELLED
 }
 
+enum PaymentMethod {
+  CASH
+  TESLA_PAY
+}
+
 model User {
   id            String        @id @default(uuid())
   name          String
@@ -70,6 +75,7 @@ model RideRequest {
   dropoffLocation      String
   seatsRequested       Int
   status               RequestStatus @default(REQUESTED)
+  paymentMethod        PaymentMethod @default(CASH)
   baseFarePoysha       Int
   distanceChargePoysha Int
   poolDiscountPoysha   Int

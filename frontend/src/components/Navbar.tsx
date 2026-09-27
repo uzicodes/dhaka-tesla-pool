@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -17,15 +18,10 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:bg-slate-800 transition">
-            ⚡
-          </div>
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-xs group-hover:opacity-90 transition"><Image src="/favicon/android-chrome-512x512.png" alt="Tesla Pool Logo" width={32} height={32} className="object-cover" /></div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-900 text-sm tracking-tight">Dhaka Tesla Pool</span>
-              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                EV Network
-              </span>
             </div>
           </div>
         </Link>
@@ -51,9 +47,9 @@ export default function Navbar() {
         </nav>
 
         {/* Live System Indicator */}
-        <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200/60">
+        <div className="hidden md:flex items-center gap-2 text-xs font-medium text-red-500 bg-green-100 px-2.5 py-1 rounded-full border border-slate-200/60">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Banani • Live Hub</span>
+          <span>Live Hub</span>
         </div>
       </div>
     </header>
