@@ -55,11 +55,33 @@ export const acceptCommuter = async (req: Request, res: Response): Promise<any> 
         throw new Error('Vehicle capacity exceeded');
       }
 
+      // Check if pool is shared (more than 1 passenger)
+      const isShared = currentRequests.length + 1 > 1;
+      const poolDiscountPoysha = isShared ? 4000 : 0;
+
       // Update State: Change request to MATCHED and assign to pool
       const updatedRequest = await tx.rideRequest.update({
         where: { id: requestId },
-        data: { status: 'MATCHED', poolId: pool.id }
+        data: { 
+          status: 'MATCHED', 
+          poolId: pool.id,
+          poolDiscountPoysha,
+          finalFarePoysha: pendingRequest.baseFarePoysha + pendingRequest.distanceChargePoysha - poolDiscountPoysha
+        }
       });
+
+      // Update existing passengers in the pool with the discount
+      if (isShared && currentRequests.length > 0) {
+        for (const req of currentRequests) {
+          await tx.rideRequest.update({
+            where: { id: req.id },
+            data: {
+              poolDiscountPoysha,
+              finalFarePoysha: req.baseFarePoysha + req.distanceChargePoysha - poolDiscountPoysha
+            }
+          });
+        }
+      }
 
       return { pool, updatedRequest };
     });

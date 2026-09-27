@@ -267,11 +267,21 @@ export default function PassengerDashboard() {
               <span className="font-semibold text-emerald-900">Calculated Pooled Fare</span>
               <p className="text-[11px] text-emerald-700">Fixed rate calculated in integer Poysha</p>
             </div>
-            <div className="text-right">
-              <span className="text-base font-bold text-emerald-900">
-                ৳{(activeRequest.finalFarePoysha / 100).toFixed(2)}
-              </span>
-              <p className="text-[10px] text-emerald-600">Base ৳60 + Dist ৳120</p>
+            <div className="text-right flex flex-col items-end">
+              <div className="flex items-center gap-2">
+                {activeRequest.poolDiscountPoysha > 0 && (
+                  <span className="text-sm font-semibold text-slate-400 line-through">
+                    ৳ {((activeRequest.baseFarePoysha + activeRequest.distanceChargePoysha) / 100).toFixed(2)}
+                  </span>
+                )}
+                <span className="text-base font-bold text-emerald-900">
+                  ৳ {(activeRequest.finalFarePoysha / 100).toFixed(2)}
+                </span>
+              </div>
+              <p className="text-[10px] text-emerald-600">
+                Base ৳ {(activeRequest.baseFarePoysha / 100).toFixed(2)} + Dist ৳ {(activeRequest.distanceChargePoysha / 100).toFixed(2)}
+                {activeRequest.poolDiscountPoysha > 0 && ` - Pool Discount ৳ ${(activeRequest.poolDiscountPoysha / 100).toFixed(2)}`}
+              </p>
             </div>
           </div>
 
