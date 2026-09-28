@@ -269,5 +269,5 @@ This MVP is deliberately lean — but it's designed with a clear path to massive
 
 ---
 ## Video Demonstration
-- **Watch the Demo:** [Loom Video Link Here](https://www.loom.com/share/YOUR_VIDEO_ID)
+- **Watch the Demo:** [Video Link Here](https://drive.google.com/drive/folders/1_AAKzHSaysTVnD5zH6OxziNuvN9rD_6c?usp=sharing)
 <p align="center">Made by - Utsho Heaven Chowdhury </p>
