@@ -262,8 +262,12 @@ This MVP is deliberately lean — but it's designed with a clear path to massive
 ---
 
 
-##  AI Integration & Usage Disclosure
+##  AI Usage Disclosure
+- **Tools Used:** VS Code, Gemini, Claude (for boilerplate scaffolding, Tailwind styles, and test mocks).
+- **Accepted Suggestion:** Using an interactive Prisma transaction (`prisma.$transaction`) to atomically count occupied seats and prevent concurrent overbooking.
+- **Rejected / Modified Suggestion:** AI initially suggested setting up WebSockets via Socket.io and Redis for real-time events. This was rejected to keep the MVP lean and resilient; automated client polling was implemented instead, avoiding unnecessary infrastructure complexity during the MVP phase while documenting WebSockets in the viral scaling blueprint.
 
-Generative AI (Cursor/Copilot) was utilized during the development of this MVP to accelerate boilerplate generation (Express routing, Next.js UI scaffolding), format Tailwind CSS layouts, and assist in structuring the Docker infrastructure. All core business logic, database schema design, capacity constraint enforcement, and architectural decisions were independently engineered and verified via integration tests.
-
+---
+## Video Demonstration
+- **Watch the Demo:** [Loom Video Link Here](https://www.loom.com/share/YOUR_VIDEO_ID)
 <p align="center">Made by - Utsho Heaven Chowdhury </p>
