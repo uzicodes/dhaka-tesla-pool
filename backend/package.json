@@ -2,11 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "dev": "nodemon src/index.ts",
-    "test": "jest",
-    "build": "tsc"
+    "test": "jest --runInBand",
+    "build": "tsc",
+    "start": "node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
