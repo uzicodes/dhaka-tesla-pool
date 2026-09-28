@@ -9,6 +9,10 @@ describe('Dhaka Tesla Pool API', () => {
   let passengerId3: string;
 
   beforeAll(async () => {
+    // Clean up residual test records before running tests
+    await prisma.rideRequest.deleteMany();
+    await prisma.ridePool.deleteMany();
+
     // Fetch the seeded data
     const driver = await prisma.user.findFirst({ where: { name: 'Jashim' } });
     const p1 = await prisma.user.findFirst({ where: { name: 'Nusrat' } });
