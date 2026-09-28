@@ -32,6 +32,10 @@ By consolidating overlapping trips into shared rides, the platform aims to:
 
 This repository contains the complete MVP: a driver/passenger web client, a real-time trip-matching backend, and the database schema needed to model pooled rides, capacity constraints, and fare splitting.
 
+### 🏗️ System Architecture
+
+![Oi Tesla Architecture Diagram](./docs/Architectural%20Diagram.png)
+
 ---
 
 ##  Core Features (MVP)
@@ -230,6 +234,10 @@ You're all set — open `http://localhost:3000` in your browser to start pooling
 ##  Database Schema
 
 The data model is defined in `backend/prisma/schema.prisma` and centers around four core models:
+
+![Oi Tesla ERD Diagram](./docs/ERD.png)
+
+
 
 - **`User`**
   Represents both drivers and passengers, differentiated by a `role` field (`DRIVER` | `PASSENGER`). Stores profile info, payment preference, and relations to owned vehicles or ride requests.
